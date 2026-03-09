@@ -1,5 +1,5 @@
 -- ============================================================
--- NomadCafe — Supabase Schema
+-- spillthebeans — Supabase Schema
 -- Run this entire file in the Supabase SQL Editor
 -- ============================================================
 

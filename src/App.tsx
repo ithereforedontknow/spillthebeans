@@ -55,7 +55,15 @@ function App() {
         }
       />
       <Route
-        path="/spot/:id"
+        path="/spot/:slug"
+        element={
+          <Layout>
+            <SpotPage />
+          </Layout>
+        }
+      />
+      <Route
+        path="/spot/:slug"
         element={
           <Layout>
             <SpotPage />
