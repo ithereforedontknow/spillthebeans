@@ -1,6 +1,5 @@
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-
 import { registerNavigate } from "@/context/AuthContext";
 import { Layout } from "@/components/layout/Layout";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
@@ -14,6 +13,7 @@ import { Settings } from "@/pages/Settings";
 import { Login } from "@/pages/Login";
 import { AuthCallback } from "@/pages/AuthCallback";
 import { AdminPanel } from "@/pages/AdminPanel";
+import { Passport } from "@/pages/Passport";
 
 function App() {
   const navigate = useNavigate();
@@ -101,6 +101,14 @@ function App() {
             <ProtectedRoute adminOnly>
               <AdminPanel />
             </ProtectedRoute>
+          </Layout>
+        }
+      />
+      <Route
+        path="/passport"
+        element={
+          <Layout>
+            <Passport />
           </Layout>
         }
       />

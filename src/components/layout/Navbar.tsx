@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { Menu, X, User, Settings, LogOut, ShieldCheck, Map } from 'lucide-react'
+import { Menu, X, User, Settings, LogOut, ShieldCheck, Map, Stamp } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { Avatar } from '@/components/ui/Avatar'
 import { cn } from '@/lib/utils'
@@ -13,6 +13,7 @@ export function Navbar() {
   const nav = [
     { to: '/spots', label: 'Browse' },
     { to: '/map',   label: 'Map', icon: Map },
+    { to: '/passport', label: 'Passport', icon: Stamp },
   ]
 
   return (
@@ -60,6 +61,7 @@ export function Navbar() {
                     <div className="fixed inset-0 z-40" onClick={() => setDrop(false)} />
                     <div className="absolute right-0 top-11 z-50 w-48 bg-card border border-border rounded-lg py-1 shadow-2xl animate-fade-in">
                       <DropItem to="/profile"  icon={User}       onClick={() => setDrop(false)}>Profile</DropItem>
+                      <DropItem to="/passport" icon={Stamp}      onClick={() => setDrop(false)}>Passport</DropItem>
                       <DropItem to="/settings" icon={Settings}   onClick={() => setDrop(false)}>Settings</DropItem>
                       {isAdmin && <DropItem to="/admin" icon={ShieldCheck} onClick={() => setDrop(false)}>Admin</DropItem>}
                       <div className="divider my-1" />
@@ -96,7 +98,8 @@ export function Navbar() {
             {user ? (
               <>
                 <NavLink to="/review/new" onClick={() => setOpen(false)} className="flex items-center px-3 py-2.5 text-sm text-amber">+ Write Review</NavLink>
-                <NavLink to="/profile"   onClick={() => setOpen(false)} className="flex items-center px-3 py-2.5 text-sm text-dim">Profile</NavLink>
+<NavLink to="/profile"   onClick={() => setOpen(false)} className="flex items-center px-3 py-2.5 text-sm text-dim">Profile</NavLink>
+                <NavLink to="/passport"  onClick={() => setOpen(false)} className="flex items-center px-3 py-2.5 text-sm text-dim">Passport</NavLink>
                 <NavLink to="/settings"  onClick={() => setOpen(false)} className="flex items-center px-3 py-2.5 text-sm text-dim">Settings</NavLink>
                 {isAdmin && <NavLink to="/admin" onClick={() => setOpen(false)} className="flex items-center px-3 py-2.5 text-sm text-dim">Admin</NavLink>}
                 <button onClick={() => { setOpen(false); logout() }} className="w-full text-left px-3 py-2.5 text-sm text-red-400">Sign out</button>

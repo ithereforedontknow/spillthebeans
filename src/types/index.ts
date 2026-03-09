@@ -113,7 +113,7 @@ export interface ReviewFormData {
 }
 
 export interface ProfileFormData {
-  username: string; bio: string; city: string; work_type: string
+  username: string; bio: string; city: string; work_type: string; avatar_url: string | null
 }
 
 // ── Filters ───────────────────────────────────────────────────────────────────
@@ -141,3 +141,43 @@ export const SUGGESTED_TAGS = [
   'rooftop', 'AC', 'study-friendly', 'good light', 'pet-friendly',
   'parking', 'no time limit', 'outdoor seating', 'co-working vibe',
 ]
+
+// ── Phase 2 additions ─────────────────────────────────────────────────────────
+
+// Flagging fields added to DbReview
+export interface DbReviewFlagged extends DbReview {
+  is_flagged:     boolean
+  flagged_reason: string | null
+  flagged_by:     string | null
+  flagged_at:     string | null
+}
+
+// Passport / badge types
+export const BADGE_TIERS = ['Newcomer', 'Explorer', 'Regular', 'Grinder', 'Veteran'] as const
+export type BadgeTier = typeof BADGE_TIERS[number]
+
+export const BADGE_REQUIREMENTS: Record<BadgeTier, number> = {
+  Newcomer: 0,
+  Explorer: 1,
+  Regular:  5,
+  Grinder:  10,
+  Veteran:  25,
+}
+
+export const BADGE_DESCRIPTIONS: Record<BadgeTier, string> = {
+  Newcomer: 'Just getting started',
+  Explorer: 'Reviewed your first work spot',
+  Regular:  'Reviewed 5 different spots',
+  Grinder:  'Reviewed 10 different spots',
+  Veteran:  'Reviewed 25 different spots',
+}
+
+export interface UserPassport {
+  id:             string
+  username:       string | null
+  avatar_url:     string | null
+  spots_visited:  number
+  total_reviews:  number
+  avg_score_given: number | null
+  badge_tier:     BadgeTier
+}

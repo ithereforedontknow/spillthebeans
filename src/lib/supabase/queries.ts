@@ -146,3 +146,80 @@ export async function upsertProfile(userId: string, data: Partial<ProfileFormDat
   if (error) throw error
   return d
 }
+
+// ── Phase 2: Image uploads ────────────────────────────────────────────────────
+
+export async function uploadSpotImage(file: File, spotId: string): Promise<string> {
+  const ext  = file.name.split('.').pop() ?? 'jpg'
+  const path = `${spotId}/${Date.now()}.${ext}`
+  const { error } = await supabase.storage
+    .from('spot-images')
+    .upload(path, file, { upsert: true, contentType: file.type })
+  if (error) throw error
+  const { data } = supabase.storage.from('spot-images').getPublicUrl(path)
+  return data.publicUrl
+}
+
+export async function deleteSpotImage(path: string) {
+  // path is the full public URL — extract the storage path
+  const storagePath = path.split('/spot-images/')[1]
+  if (!storagePath) return
+  const { error } = await supabase.storage.from('spot-images').remove([storagePath])
+  if (error) throw error
+}
+
+// ── Phase 2: Review flagging (via RPC) ───────────────────────────────────────
+
+export async function flagReview(reviewId: string, reason: string) {
+  const { error } = await supabase.rpc('flag_review', { review_id: reviewId, reason })
+  if (error) throw error
+}
+
+export async function unflagReview(reviewId: string) {
+  const { error } = await supabase.rpc('unflag_review', { review_id: reviewId })
+  if (error) throw error
+}
+
+export async function fetchFlaggedReviews() {
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('*, spots(name)')
+    .eq('is_flagged', true)
+    .order('flagged_at', { ascending: false })
+  if (error) throw error
+  return data
+}
+
+// ── Phase 2: Passport ────────────────────────────────────────────────────────
+
+export async function fetchUserPassport(userId: string) {
+  const { data, error } = await supabase
+    .from('user_passport')
+    .select('*')
+    .eq('id', userId)
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function fetchPassportLeaderboard() {
+  const { data, error } = await supabase
+    .from('user_passport')
+    .select('*')
+    .gt('spots_visited', 0)
+    .order('spots_visited', { ascending: false })
+    .limit(50)
+  if (error) throw error
+  return data
+}
+
+// Fetch all spots a user has reviewed (for passport spot grid)
+export async function fetchVisitedSpots(userId: string) {
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('spot_id, created_at, overall_score, spots(id, name, city, image_url)')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return data
+}

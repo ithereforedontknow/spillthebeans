@@ -44,12 +44,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   })
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s)
       setUser(s?.user ?? null)
       if (!s?.user) {
         // Clear cached profile when logged out
         qc.removeQueries({ queryKey: ['profile'] })
+      } else if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+        // Sync Google avatar on every sign-in so it stays fresh
+        const meta = s.user.user_metadata ?? {}
+        const latestAvatar = meta.avatar_url ?? meta.picture ?? null
+        if (latestAvatar) {
+          upsertProfile(s.user.id, { avatar_url: latestAvatar }).catch(() => {})
+        }
       }
       setAuthLoading(false)
     })
