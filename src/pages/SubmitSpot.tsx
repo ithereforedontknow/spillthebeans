@@ -33,6 +33,7 @@ export function SubmitSpot() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
 
   const f =
     (key: string) =>

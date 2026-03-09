@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/context/AuthContext";
 import { ScrollToTop } from "@/components/layout/ScrollToTop";
 import { ToastProvider } from "@/components/ui/Toast";
+import { ErrorBoundary } from "@/components/layout/ErrorBoundary";
 import App from "./App";
 import "./index.css";
 
@@ -16,17 +17,19 @@ export const queryClient = new QueryClient({
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter
-      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-    >
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <ToastProvider>
-            <App />
-          </ToastProvider>
-          <ScrollToTop />
-        </AuthProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <ToastProvider>
+              <App />
+            </ToastProvider>
+            <ScrollToTop />
+          </AuthProvider>
+        </QueryClientProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   </StrictMode>,
 );
