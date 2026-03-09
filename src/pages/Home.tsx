@@ -96,7 +96,7 @@ function LandingHero() {
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-28 md:py-36">
         <div className="max-w-3xl">
           <p className="font-mono text-2xs text-amber uppercase tracking-widest mb-5">
-            Baguio City, Philippines / est. 2024
+            Baguio City, Philippines / est. 2026
           </p>
           <h1 className="font-display text-5xl sm:text-6xl md:text-7xl text-head leading-[1.05] mb-6">
             Find your next
