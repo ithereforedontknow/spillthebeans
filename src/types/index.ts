@@ -404,3 +404,45 @@ export interface CityStats {
   avg_score: number | null;
   last_reviewed_at: string | null;
 }
+
+// ── Phase 5: Social ───────────────────────────────────────────────────────────
+
+export interface DbFollow {
+  id: string;
+  follower_id: string;
+  following_id: string;
+  created_at: string;
+}
+
+export interface ProfileSocial {
+  id: string;
+  username: string | null;
+  avatar_url: string | null;
+  city: string | null;
+  bio: string | null;
+  follower_count: number;
+  following_count: number;
+}
+
+export interface FeedItem {
+  id: string;
+  type: "review";
+  actor_id: string;
+  actor_name: string;
+  actor_avatar: string | null;
+  spot_id: string;
+  spot_name: string;
+  spot_slug: string | null;
+  spot_city: string;
+  body: string;
+  score: number;
+  created_at: string;
+}
+
+export interface SuggestedUser {
+  id: string;
+  username: string | null;
+  avatar_url: string | null;
+  city: string | null;
+  review_count: number;
+}

@@ -617,3 +617,66 @@ export async function fetchCityTopReviewers(city: string) {
     .sort((a, b) => b.count - a.count)
     .slice(0, 10);
 }
+
+// ── Phase 5: Social ───────────────────────────────────────────────────────────
+
+export async function fetchFollows(userId: string) {
+  const { data, error } = await supabase
+    .from("follows")
+    .select("*")
+    .eq("follower_id", userId);
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchFollowers(userId: string) {
+  const { data, error } = await supabase
+    .from("follows")
+    .select("*")
+    .eq("following_id", userId);
+  if (error) throw error;
+  return data;
+}
+
+export async function followUser(followerId: string, followingId: string) {
+  const { error } = await supabase
+    .from("follows")
+    .insert({ follower_id: followerId, following_id: followingId });
+  if (error) throw error;
+}
+
+export async function unfollowUser(followerId: string, followingId: string) {
+  const { error } = await supabase
+    .from("follows")
+    .delete()
+    .eq("follower_id", followerId)
+    .eq("following_id", followingId);
+  if (error) throw error;
+}
+
+export async function fetchProfileSocial(userId: string) {
+  const { data, error } = await supabase
+    .from("profile_social")
+    .select("*")
+    .eq("id", userId)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchFeed(userId: string, offset = 0) {
+  const { data, error } = await supabase.rpc("get_feed", {
+    requesting_user_id: userId,
+    page_offset: offset,
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchSuggestedUsers(userId: string) {
+  const { data, error } = await supabase.rpc("suggested_users", {
+    requesting_user_id: userId,
+  });
+  if (error) throw error;
+  return data;
+}

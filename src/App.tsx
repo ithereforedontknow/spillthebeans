@@ -16,6 +16,7 @@ import { AdminPanel } from "@/pages/AdminPanel";
 import { Passport } from "@/pages/Passport";
 import { SubmitSpot } from "@/pages/SubmitSpot";
 import { Cities } from "@/pages/Cities";
+import { Feed } from "@/pages/Feed";
 import { CityPage } from "@/pages/CityPage";
 
 function App() {
@@ -129,6 +130,16 @@ function App() {
           <Layout>
             <ProtectedRoute>
               <SubmitSpot />
+            </ProtectedRoute>
+          </Layout>
+        }
+      />
+      <Route
+        path="/feed"
+        element={
+          <Layout>
+            <ProtectedRoute>
+              <Feed />
             </ProtectedRoute>
           </Layout>
         }

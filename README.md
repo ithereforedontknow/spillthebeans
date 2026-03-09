@@ -1,4 +1,4 @@
-# NomadCafe
+# spillthebeans
 
 **Find cafes built for deep work.** Rated by remote workers on WiFi, power, noise, and more.
 

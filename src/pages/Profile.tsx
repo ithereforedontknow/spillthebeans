@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { fetchProfileSocial } from "@/lib/supabase/queries";
+import { FollowButton } from "@/components/social/FollowButton";
 import { useUserReviews } from "@/hooks/useReviews";
 import { useSpotLikes } from "@/hooks/useLikes";
 import { useSpots } from "@/hooks/useSpots";
@@ -190,6 +193,31 @@ export function Profile() {
               }
             />
           ))}
+      </div>
+    </div>
+  );
+}
+
+function SocialCounts({ userId }: { userId: string }) {
+  const { data } = useQuery({
+    queryKey: ["profile-social", userId],
+    queryFn: () => fetchProfileSocial(userId),
+    staleTime: 60_000,
+  });
+  if (!data) return null;
+  return (
+    <div className="flex gap-6 mt-3">
+      <div>
+        <span className="font-mono text-lg font-semibold text-amber">
+          {data.follower_count}
+        </span>
+        <span className="font-mono text-2xs text-dim ml-1.5">followers</span>
+      </div>
+      <div>
+        <span className="font-mono text-lg font-semibold text-amber">
+          {data.following_count}
+        </span>
+        <span className="font-mono text-2xs text-dim ml-1.5">following</span>
       </div>
     </div>
   );
