@@ -35,7 +35,7 @@ function SpotMarker({ spot }: { spot: DbSpot }) {
             style={{
               fontFamily: "Fraunces, Georgia, serif",
               fontSize: "15px",
-              color: "#edeae3",
+              color: "#718264",
               marginBottom: "4px",
             }}
           >

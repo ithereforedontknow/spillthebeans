@@ -111,7 +111,7 @@ function LandingHero() {
             <Link to="/spots" className="btn-primary px-6 py-2.5 text-base">
               Browse spots <ArrowRight size={15} />
             </Link>
-            <Link to="/login" className="btn-secondary px-6 py-2.5 text-base">
+            <Link to="/login" className="btn-secondary px-6 py-2.5">
               Add a review
             </Link>
           </div>
