@@ -1,5 +1,5 @@
 -- ============================================================
--- spillthebeans Phase 3 — Run in Supabase SQL Editor
+-- NomadCafe Phase 3 — Run in Supabase SQL Editor
 -- ============================================================
 
 -- ── 1. SLUG column on spots ───────────────────────────────────────────────────

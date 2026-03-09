@@ -49,7 +49,7 @@ export function Login() {
               </svg>
             </div>
             <span className="font-display text-head font-semibold">
-              spillthebeans
+              SpillTheBeans
             </span>
           </div>
         </div>
@@ -107,7 +107,7 @@ export function Login() {
                 />
               </svg>
             </div>
-            <span className="font-display text-head">spillthebeans</span>
+            <span className="font-display text-head">SpillTheBeans</span>
           </div>
 
           <h1 className="font-display text-3xl text-head mb-2">Sign in</h1>

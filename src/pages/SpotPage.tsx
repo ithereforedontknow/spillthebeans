@@ -12,6 +12,8 @@ import {
   Clock,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { fetchSpotVerified } from "@/lib/supabase/queries";
 import { useSpotBySlug, useSimilarSpots } from "@/hooks/useSpots";
 import { useSpotReviews } from "@/hooks/useReviews";
 import {
@@ -35,6 +37,9 @@ import {
   cn,
 } from "@/lib/utils";
 import { SpotPhotoUpload } from "@/components/spot/SpotPhotoUpload";
+import { SpotPhotoGallery } from "@/components/spot/SpotPhotoGallery";
+import { SpotUpdateFlag } from "@/components/spot/SpotUpdateFlag";
+import { HoursSuggestion } from "@/components/spot/HoursSuggestion";
 import {
   PRICE_LABELS,
   AMENITY_KEYS,
@@ -78,6 +83,12 @@ export function SpotPage() {
   const activeAmenities = AMENITY_KEYS.filter(
     (k) => spot?.[k as keyof typeof spot],
   );
+
+  const { data: isVerified } = useQuery({
+    queryKey: ["verified", spot?.id],
+    queryFn: () => fetchSpotVerified(spot!.id),
+    enabled: !!spot?.id,
+  });
 
   if (spotLoading || revLoading) return <PageSpinner />;
   if (!spot)
@@ -132,9 +143,16 @@ export function SpotPage() {
           <aside className="lg:col-span-1 space-y-4">
             <div className="card p-6">
               <div className="flex items-start justify-between gap-2 mb-4">
-                <h1 className="font-display text-2xl text-head leading-tight">
-                  {spot.name}
-                </h1>
+                <div>
+                  <h1 className="font-display text-2xl text-head leading-tight">
+                    {spot.name}
+                  </h1>
+                  {isVerified && (
+                    <span className="inline-flex items-center gap-1 font-mono text-2xs text-amber border border-amber/30 bg-amber/5 rounded px-2 py-0.5 mt-1">
+                      ✓ Community verified
+                    </span>
+                  )}
+                </div>
                 {user && (
                   <button
                     onClick={() =>
@@ -327,6 +345,28 @@ export function SpotPage() {
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Photo gallery */}
+            {spot && (
+              <div className="card p-5">
+                <SpotPhotoGallery spotId={spot.id} />
+              </div>
+            )}
+
+            {/* Crowdsource: hours + update flag */}
+            {user && spot && (
+              <div className="card p-4 space-y-2">
+                <p className="font-mono text-2xs text-dim uppercase tracking-widest mb-3">
+                  Help keep this accurate
+                </p>
+                <HoursSuggestion
+                  spotId={spot.id}
+                  userId={user.id}
+                  currentHours={spot.hours_json}
+                />
+                <SpotUpdateFlag spotId={spot.id} userId={user.id} />
               </div>
             )}
 

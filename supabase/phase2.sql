@@ -1,5 +1,5 @@
 -- ============================================================
--- spillthebeans Phase 2 — Run in Supabase SQL Editor
+-- NomadCafe Phase 2 — Run in Supabase SQL Editor
 -- ============================================================
 
 -- ── 1. REVIEWS: add flagging columns ─────────────────────────────────────────

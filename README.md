@@ -1,4 +1,4 @@
-# spillthebeans
+# NomadCafe
 
 **Find cafes built for deep work.** Rated by remote workers on WiFi, power, noise, and more.
 
@@ -12,7 +12,7 @@ Stack: React 18 + TypeScript + Vite + TanStack Query + Zod + Supabase + Tailwind
 
 ```bash
 git clone <repo>
-cd spillthebeans
+cd nomadcafe
 npm install
 ```
 

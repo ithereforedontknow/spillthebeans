@@ -14,6 +14,9 @@ import { Login } from "@/pages/Login";
 import { AuthCallback } from "@/pages/AuthCallback";
 import { AdminPanel } from "@/pages/AdminPanel";
 import { Passport } from "@/pages/Passport";
+import { SubmitSpot } from "@/pages/SubmitSpot";
+import { Cities } from "@/pages/Cities";
+import { CityPage } from "@/pages/CityPage";
 
 function App() {
   const navigate = useNavigate();
@@ -117,6 +120,32 @@ function App() {
         element={
           <Layout>
             <Passport />
+          </Layout>
+        }
+      />
+      <Route
+        path="/submit"
+        element={
+          <Layout>
+            <ProtectedRoute>
+              <SubmitSpot />
+            </ProtectedRoute>
+          </Layout>
+        }
+      />
+      <Route
+        path="/cities"
+        element={
+          <Layout>
+            <Cities />
+          </Layout>
+        }
+      />
+      <Route
+        path="/city/:city"
+        element={
+          <Layout>
+            <CityPage />
           </Layout>
         }
       />

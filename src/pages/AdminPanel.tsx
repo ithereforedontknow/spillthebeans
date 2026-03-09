@@ -9,6 +9,10 @@ import {
   Flag,
   ShieldOff,
   AlertTriangle,
+  Clock,
+  Send,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import {
   useSpotsAdmin,
@@ -30,7 +34,18 @@ import {
 } from "@/types";
 import type { DbSpot, SpotFormData } from "@/types";
 import { formatDate, cn } from "@/lib/utils";
-import { unflagReview, fetchFlaggedReviews } from "@/lib/supabase/queries";
+import {
+  unflagReview,
+  fetchFlaggedReviews,
+  fetchSubmissions,
+  approveSubmission,
+  rejectSubmission,
+  fetchOpenUpdates,
+  resolveSpotUpdate,
+  fetchHoursSuggestions,
+  applyHoursSuggestion,
+  dismissHoursSuggestion,
+} from "@/lib/supabase/queries";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { REVIEWS_KEY } from "@/hooks/useReviews";
 
@@ -58,11 +73,31 @@ const EMPTY: SpotFormData = {
   amenity_pet_friendly: false,
 };
 
-type Tab = "spots" | "reviews" | "flagged" | "stats";
+type Tab =
+  | "spots"
+  | "reviews"
+  | "flagged"
+  | "submissions"
+  | "updates"
+  | "hours"
+  | "stats";
 
 export function AdminPanel() {
   const { data: spots = [], isLoading: spotsLoading } = useSpotsAdmin();
   const { data: reviews = [], isLoading: revLoading } = useAdminReviews();
+  const { data: submissions = [], isLoading: subsLoading } = useQuery({
+    queryKey: [...REVIEWS_KEY, "submissions"],
+    queryFn: () => fetchSubmissions("pending"),
+    refetchInterval: 60_000,
+  });
+  const { data: openUpdates = [] } = useQuery({
+    queryKey: [...REVIEWS_KEY, "open-updates"],
+    queryFn: fetchOpenUpdates,
+  });
+  const { data: hoursSuggestions = [] } = useQuery({
+    queryKey: [...REVIEWS_KEY, "hours-suggestions"],
+    queryFn: () => fetchHoursSuggestions(),
+  });
   const { data: flagged = [], isLoading: flaggedLoading } = useQuery({
     queryKey: [...REVIEWS_KEY, "flagged"],
     queryFn: fetchFlaggedReviews,
@@ -85,6 +120,10 @@ export function AdminPanel() {
   const [confirm, setConfirm] = useState<string | null>(null);
   const [confirmReview, setConfirmReview] = useState<string | null>(null);
   const [unflagging, setUnflagging] = useState<string | null>(null);
+  const [approvingSub, setApprovingSub] = useState<string | null>(null);
+  const [rejectSub, setRejectSub] = useState<string | null>(null);
+  const [rejectNote, setRejectNote] = useState("");
+  const [resolvingUpdate, setResolvingUpdate] = useState<string | null>(null);
 
   if (spotsLoading || revLoading) return <PageSpinner />;
 
@@ -183,6 +222,72 @@ export function AdminPanel() {
     }
   };
 
+  const handleApproveSubmission = async (id: string) => {
+    setApprovingSub(id);
+    try {
+      const spotId = await approveSubmission(id);
+      qc.invalidateQueries({ queryKey: [...REVIEWS_KEY, "submissions"] });
+      qc.invalidateQueries({ queryKey: ["spots"] });
+      toast("Submission approved — spot created as draft.");
+    } catch (err: any) {
+      toast(err.message ?? "Failed.", "err");
+    } finally {
+      setApprovingSub(null);
+    }
+  };
+
+  const handleRejectSubmission = async (id: string) => {
+    try {
+      await rejectSubmission(id, rejectNote);
+      qc.invalidateQueries({ queryKey: [...REVIEWS_KEY, "submissions"] });
+      setRejectSub(null);
+      setRejectNote("");
+      toast("Submission rejected.");
+    } catch (err: any) {
+      toast(err.message ?? "Failed.", "err");
+    }
+  };
+
+  const handleResolveUpdate = async (
+    id: string,
+    action: "resolved" | "dismissed",
+  ) => {
+    setResolvingUpdate(id);
+    try {
+      await resolveSpotUpdate(id, action);
+      qc.invalidateQueries({ queryKey: [...REVIEWS_KEY, "open-updates"] });
+      toast(action === "resolved" ? "Marked resolved." : "Dismissed.");
+    } catch (err: any) {
+      toast(err.message ?? "Failed.", "err");
+    } finally {
+      setResolvingUpdate(null);
+    }
+  };
+
+  const handleApplyHours = async (
+    id: string,
+    spotId: string,
+    hoursJson: object,
+  ) => {
+    try {
+      await applyHoursSuggestion(id, spotId, hoursJson);
+      qc.invalidateQueries({ queryKey: [...REVIEWS_KEY, "hours-suggestions"] });
+      toast("Hours updated.");
+    } catch (err: any) {
+      toast(err.message ?? "Failed.", "err");
+    }
+  };
+
+  const handleDismissHours = async (id: string) => {
+    try {
+      await dismissHoursSuggestion(id);
+      qc.invalidateQueries({ queryKey: [...REVIEWS_KEY, "hours-suggestions"] });
+      toast("Suggestion dismissed.");
+    } catch (err: any) {
+      toast(err.message ?? "Failed.", "err");
+    }
+  };
+
   const f =
     (key: keyof SpotFormData) =>
     (
@@ -197,6 +302,24 @@ export function AdminPanel() {
     { id: "reviews", label: "Reviews", icon: FileText, badge: reviews.length },
     { id: "flagged", label: "Flagged", icon: Flag, badge: flagged.length },
     { id: "stats", label: "Stats", icon: BarChart3 },
+    {
+      id: "submissions",
+      label: "Submissions",
+      icon: Send,
+      badge: submissions.length,
+    },
+    {
+      id: "updates",
+      label: "Updates",
+      icon: AlertTriangle,
+      badge: openUpdates.length,
+    },
+    {
+      id: "hours",
+      label: "Hours",
+      icon: Clock,
+      badge: hoursSuggestions.length,
+    },
   ];
 
   return (
@@ -207,7 +330,7 @@ export function AdminPanel() {
           <div>
             <h1 className="font-display text-3xl text-head">Admin</h1>
             <p className="font-mono text-2xs text-amber mt-1 uppercase tracking-widest">
-              spillthebeans Management
+              SpillTheBeans Management
             </p>
           </div>
           {tab === "spots" && (
@@ -584,6 +707,247 @@ export function AdminPanel() {
           </div>
         )}
       </div>
+
+      {/* ── Submissions tab ── */}
+      {tab === "submissions" && (
+        <div className="space-y-3">
+          {submissions.length === 0 ? (
+            <div className="text-center py-20">
+              <Send
+                size={28}
+                className="text-muted mx-auto mb-3"
+                strokeWidth={1.5}
+              />
+              <p className="font-display text-xl text-head mb-1">
+                No pending submissions
+              </p>
+              <p className="font-mono text-xs text-dim">
+                New spot submissions will appear here.
+              </p>
+            </div>
+          ) : (
+            submissions.map((sub: any) => (
+              <div key={sub.id} className="card p-5">
+                <div className="flex items-start justify-between gap-4 flex-wrap">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-display text-lg text-head">
+                        {sub.name}
+                      </h3>
+                    </div>
+                    <p className="font-mono text-xs text-dim">
+                      {sub.address}, {sub.city}
+                    </p>
+                    <p className="font-mono text-2xs text-dim mt-1">
+                      Submitted by {sub.submitter_name} ·{" "}
+                      {formatDate(sub.created_at)}
+                    </p>
+                    {sub.description && (
+                      <p className="text-sm text-body mt-2">
+                        {sub.description}
+                      </p>
+                    )}
+                    <div className="flex gap-2 mt-2">
+                      {sub.has_wifi && <span className="tag">WiFi</span>}
+                      {sub.has_power && <span className="tag">Power</span>}
+                      {sub.opening_hours && (
+                        <span className="tag">{sub.opening_hours}</span>
+                      )}
+                    </div>
+                  </div>
+                  {sub.image_url && (
+                    <img
+                      src={sub.image_url}
+                      alt=""
+                      className="w-24 h-20 object-cover rounded shrink-0"
+                    />
+                  )}
+                </div>
+                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border">
+                  <button
+                    onClick={() => handleApproveSubmission(sub.id)}
+                    disabled={approvingSub === sub.id}
+                    className="btn-primary btn-sm"
+                  >
+                    <CheckCircle2 size={13} />
+                    {approvingSub === sub.id ? "Approving..." : "Approve"}
+                  </button>
+                  {rejectSub === sub.id ? (
+                    <div className="flex gap-2 flex-1">
+                      <input
+                        value={rejectNote}
+                        onChange={(e) => setRejectNote(e.target.value)}
+                        placeholder="Rejection reason..."
+                        className="input flex-1 text-sm py-1"
+                      />
+                      <button
+                        onClick={() => handleRejectSubmission(sub.id)}
+                        className="btn-danger btn-sm"
+                      >
+                        Confirm reject
+                      </button>
+                      <button
+                        onClick={() => {
+                          setRejectSub(null);
+                          setRejectNote("");
+                        }}
+                        className="btn-ghost btn-sm"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setRejectSub(sub.id)}
+                      className="btn-secondary btn-sm"
+                    >
+                      <XCircle size={13} />
+                      Reject
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* ── Open updates tab ── */}
+      {tab === "updates" && (
+        <div className="space-y-3">
+          {openUpdates.length === 0 ? (
+            <div className="text-center py-20">
+              <CheckCircle2
+                size={28}
+                className="text-muted mx-auto mb-3"
+                strokeWidth={1.5}
+              />
+              <p className="font-display text-xl text-head mb-1">
+                No open updates
+              </p>
+              <p className="font-mono text-xs text-dim">
+                Spot info reports will appear here.
+              </p>
+            </div>
+          ) : (
+            (openUpdates as any[]).map((u) => (
+              <div
+                key={u.id}
+                className="card p-5 flex items-start justify-between gap-4 flex-wrap"
+              >
+                <div>
+                  <p className="font-medium text-head">
+                    {u.spots?.name ?? "—"}
+                  </p>
+                  <p className="font-mono text-xs text-amber mt-0.5">
+                    {u.category.replace(/_/g, " ")}
+                  </p>
+                  {u.note && <p className="text-sm text-body mt-2">{u.note}</p>}
+                  <p className="font-mono text-2xs text-dim mt-1">
+                    {formatDate(u.created_at)}
+                  </p>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <button
+                    onClick={() => handleResolveUpdate(u.id, "resolved")}
+                    disabled={resolvingUpdate === u.id}
+                    className="btn-primary btn-sm"
+                  >
+                    <CheckCircle2 size={12} />
+                    Resolve
+                  </button>
+                  <button
+                    onClick={() => handleResolveUpdate(u.id, "dismissed")}
+                    disabled={resolvingUpdate === u.id}
+                    className="btn-secondary btn-sm"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* ── Hours suggestions tab ── */}
+      {tab === "hours" && (
+        <div className="space-y-3">
+          {hoursSuggestions.length === 0 ? (
+            <div className="text-center py-20">
+              <Clock
+                size={28}
+                className="text-muted mx-auto mb-3"
+                strokeWidth={1.5}
+              />
+              <p className="font-display text-xl text-head mb-1">
+                No pending hours suggestions
+              </p>
+              <p className="font-mono text-xs text-dim">
+                Community hours corrections will appear here.
+              </p>
+            </div>
+          ) : (
+            (hoursSuggestions as any[]).map((s) => (
+              <div key={s.id} className="card p-5">
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <div>
+                    <p className="font-medium text-head">
+                      {s.spots?.name ?? "—"}
+                    </p>
+                    <p className="font-mono text-2xs text-dim mt-0.5">
+                      {formatDate(s.created_at)}
+                    </p>
+                    {s.note && (
+                      <p className="text-sm text-body mt-1">{s.note}</p>
+                    )}
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      onClick={() =>
+                        handleApplyHours(s.id, s.spot_id, s.hours_json)
+                      }
+                      className="btn-primary btn-sm"
+                    >
+                      <CheckCircle2 size={12} />
+                      Apply
+                    </button>
+                    <button
+                      onClick={() => handleDismissHours(s.id)}
+                      className="btn-secondary btn-sm"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-7 gap-1">
+                  {["mon", "tue", "wed", "thu", "fri", "sat", "sun"].map(
+                    (d) => (
+                      <div key={d} className="text-center">
+                        <div className="font-mono text-2xs text-dim mb-0.5">
+                          {d}
+                        </div>
+                        <div
+                          className={cn(
+                            "font-mono text-2xs rounded px-1 py-0.5",
+                            s.hours_json[d] === null
+                              ? "text-muted bg-raised"
+                              : "text-amber bg-amber/10",
+                          )}
+                        >
+                          {s.hours_json[d] === null
+                            ? "—"
+                            : (s.hours_json[d] ?? "?")}
+                        </div>
+                      </div>
+                    ),
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
 
       {/* ── Spot form modal ── */}
       {modal.open && (

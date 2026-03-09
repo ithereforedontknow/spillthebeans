@@ -313,3 +313,94 @@ export interface UserPassport {
   avg_score_given: number | null;
   badge_tier: BadgeTier;
 }
+
+// ── Phase 4 types ─────────────────────────────────────────────────────────────
+
+export type SubmissionStatus = "pending" | "approved" | "rejected";
+export type UpdateCategory =
+  | "wifi_gone"
+  | "wifi_unreliable"
+  | "power_gone"
+  | "closed_permanently"
+  | "wrong_hours"
+  | "price_changed"
+  | "moved_location"
+  | "other";
+
+export const UPDATE_CATEGORY_LABELS: Record<UpdateCategory, string> = {
+  wifi_gone: "WiFi no longer available",
+  wifi_unreliable: "WiFi is unreliable",
+  power_gone: "No power outlets anymore",
+  closed_permanently: "Permanently closed",
+  wrong_hours: "Opening hours are wrong",
+  price_changed: "Price range has changed",
+  moved_location: "Spot has moved",
+  other: "Something else",
+};
+
+export interface DbSpotSubmission {
+  id: string;
+  submitted_by: string;
+  submitter_name: string;
+  name: string;
+  address: string;
+  city: string;
+  description: string | null;
+  lat: number | null;
+  lng: number | null;
+  image_url: string | null;
+  google_maps_url: string | null;
+  opening_hours: string | null;
+  price_range: 1 | 2 | 3 | null;
+  has_wifi: boolean;
+  has_power: boolean;
+  status: SubmissionStatus;
+  admin_note: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  spot_id: string | null;
+  created_at: string;
+}
+
+export interface DbSpotUpdate {
+  id: string;
+  spot_id: string;
+  reported_by: string;
+  category: UpdateCategory;
+  note: string | null;
+  status: "open" | "resolved" | "dismissed";
+  resolved_by: string | null;
+  resolved_at: string | null;
+  created_at: string;
+}
+
+export interface DbSpotPhoto {
+  id: string;
+  spot_id: string;
+  uploaded_by: string;
+  url: string;
+  caption: string | null;
+  is_featured: boolean;
+  created_at: string;
+}
+
+export interface DbHoursSuggestion {
+  id: string;
+  spot_id: string;
+  suggested_by: string;
+  hours_json: HoursJson;
+  note: string | null;
+  status: "pending" | "applied" | "dismissed";
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+}
+
+export interface CityStats {
+  city: string;
+  spot_count: number;
+  review_count: number;
+  reviewer_count: number;
+  avg_score: number | null;
+  last_reviewed_at: string | null;
+}
