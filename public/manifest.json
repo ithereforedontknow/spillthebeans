@@ -1,0 +1,10 @@
+{
+  "name": "NomadCafe",
+  "short_name": "NomadCafe",
+  "description": "Find cafes built for deep work",
+  "theme_color": "#0c0b09",
+  "background_color": "#0c0b09",
+  "display": "standalone",
+  "start_url": "/",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
